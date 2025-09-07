@@ -31,7 +31,7 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://localhost:3001",
         "http://127.0.0.1:3000",
-        "https://your-frontend-domain.com",  # Update with your actual frontend URL
+        "https://compliance-ui.netlify.app",
     ]
     ALLOWED_HOSTS: List[str] = ["*"]
     
