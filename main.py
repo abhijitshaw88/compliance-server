@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.staticfiles import StaticFiles
 import uvicorn
+from sqlalchemy import text
 
 from app.core.config import settings
 from app.core.database import engine, Base
@@ -41,6 +42,7 @@ async def startup_event():
     try:
         # Test database connection
         with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
             logger.info("Database connection successful")
         
         # Create tables if they don't exist
@@ -89,7 +91,7 @@ async def health_check():
     try:
         # Test database connection
         with engine.connect() as connection:
-            connection.execute("SELECT 1")
+            connection.execute(text("SELECT 1"))
         db_status = "connected"
     except Exception as e:
         db_status = f"disconnected: {str(e)}"
