@@ -48,6 +48,7 @@ async def startup_event():
         logger.info("Database tables initialized successfully")
     except Exception as e:
         logger.error(f"Database initialization failed: {e}")
+        logger.error("Please check your DATABASE_URL environment variable")
         # Don't fail the startup, but log the error
 
 # Security middleware
@@ -97,8 +98,14 @@ async def health_check():
         "status": "healthy", 
         "version": settings.VERSION,
         "database": db_status,
-        "environment": settings.ENVIRONMENT
+        "environment": settings.ENVIRONMENT,
+        "database_url_set": bool(settings.DATABASE_URL and settings.DATABASE_URL != "postgresql://user:password@localhost/compliance_db")
     }
+
+@app.get("/ping")
+async def ping():
+    """Simple ping endpoint that doesn't require database"""
+    return {"message": "pong", "status": "ok"}
 
 if __name__ == "__main__":
     uvicorn.run(

@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
-    # Database
+    # Database - Use environment variable or fallback to default
     DATABASE_URL: str = "postgresql://user:password@localhost/compliance_db"
     
     # Redis
@@ -32,6 +32,8 @@ class Settings(BaseSettings):
         "http://localhost:3001",
         "http://127.0.0.1:3000",
         "https://compliance-ui.netlify.app",
+        "https://compliance-frontend.onrender.com",
+        "https://compliance-ui.onrender.com",
     ]
     ALLOWED_HOSTS: List[str] = ["*"]
     
@@ -59,6 +61,9 @@ class Settings(BaseSettings):
     # Environment
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
+    
+    # Render specific settings
+    RENDER: bool = False
     
     class Config:
         env_file = ".env"
