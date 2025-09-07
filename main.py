@@ -12,9 +12,20 @@ import uvicorn
 from app.core.config import settings
 from app.core.database import engine, Base
 from app.api.api_v1.api import api_router
+import logging
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Create database tables (with error handling)
+try:
+    Base.metadata.create_all(bind=engine)
+    logger.info("Database tables created successfully")
+except Exception as e:
+    logger.error(f"Failed to create database tables: {e}")
+    # Don't fail the entire application if database is not available
+    # This allows the app to start and handle database connection later
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -23,6 +34,21 @@ app = FastAPI(
     description="Comprehensive accounting and compliance management platform for CAs and SMBs",
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
 )
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database on startup"""
+    try:
+        # Test database connection
+        with engine.connect() as connection:
+            logger.info("Database connection successful")
+        
+        # Create tables if they don't exist
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables initialized successfully")
+    except Exception as e:
+        logger.error(f"Database initialization failed: {e}")
+        # Don't fail the startup, but log the error
 
 # Security middleware
 app.add_middleware(
@@ -59,7 +85,20 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {"status": "healthy", "version": settings.VERSION}
+    try:
+        # Test database connection
+        with engine.connect() as connection:
+            connection.execute("SELECT 1")
+        db_status = "connected"
+    except Exception as e:
+        db_status = f"disconnected: {str(e)}"
+    
+    return {
+        "status": "healthy", 
+        "version": settings.VERSION,
+        "database": db_status,
+        "environment": settings.ENVIRONMENT
+    }
 
 if __name__ == "__main__":
     uvicorn.run(
